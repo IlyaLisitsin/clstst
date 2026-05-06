@@ -1,0 +1,17 @@
+{
+  "header": {
+    "brand": "FreshCells",
+    "logout": "Abmelden"
+  },
+  "footer": {
+    "copyright": "© {{year}} FreshCells. Alle Rechte vorbehalten.",
+    "tagline": "Für die Probeaufgabe gestaltet."
+  },
+  "language": {
+    "label": "Sprache",
+    "en": "Englisch",
+    "de": "Deutsch"
+  },
+  "loading": "Wird geladen…",
+  "error": "Etwas ist schiefgelaufen."
+}

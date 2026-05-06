@@ -1,0 +1,13 @@
+{
+  "title": "Ihr Profil",
+  "subtitle": "Hinterlegte Kontodaten.",
+  "fields": {
+    "firstName": "Vorname",
+    "lastName": "Nachname"
+  },
+  "logout": "Abmelden",
+  "loading": "Profil wird geladen…",
+  "errors": {
+    "load": "Profil konnte nicht geladen werden."
+  }
+}

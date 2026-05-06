@@ -1,0 +1,13 @@
+{
+  "title": "Your profile",
+  "subtitle": "Account details on file.",
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name"
+  },
+  "logout": "Log out",
+  "loading": "Loading your profile…",
+  "errors": {
+    "load": "Could not load your profile."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "header": {
+    "brand": "FreshCells",
+    "logout": "Log out"
+  },
+  "footer": {
+    "copyright": "© {{year}} FreshCells. All rights reserved.",
+    "tagline": "Crafted for the trial task."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "de": "German"
+  },
+  "loading": "Loading…",
+  "error": "Something went wrong."
+}
