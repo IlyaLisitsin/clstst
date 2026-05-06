@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  identifier: z.string().min(1, 'identifierRequired'),
+  identifier: z.string().min(1, 'identifierRequired').email('identifierInvalid'),
   password: z.string().min(1, 'passwordRequired'),
 });
 

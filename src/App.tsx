@@ -1,6 +1,7 @@
 import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Suspense } from 'react';
+import { Toaster } from 'sonner';
 import { apolloClient } from './apollo/client';
 import { AuthProvider } from './auth/AuthProvider';
 import { ProtectedRoute } from './auth/ProtectedRoute';
@@ -31,6 +32,7 @@ export default function App() {
           <Suspense>
             <AppRoutes />
           </Suspense>
+          <Toaster position="top-right" richColors />
         </AuthProvider>
       </BrowserRouter>
     </ApolloProvider>

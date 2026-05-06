@@ -2,7 +2,7 @@ export type LoginErrorKind = 'invalid_credentials' | 'network' | 'unknown';
 
 export interface LoginError {
   kind: LoginErrorKind;
-  message: string;
+  messages: string[];
 }
 
 export type LoginResult = { ok: true } | { ok: false; error: LoginError };

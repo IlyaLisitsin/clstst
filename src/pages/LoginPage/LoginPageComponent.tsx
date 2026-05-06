@@ -1,23 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { useAuth } from '@/auth/useAuth';
 import { loginSchema, type LoginFormValues } from './loginSchema';
-import type { LoginErrorKind } from '@/auth/types';
-
-function errorKey(kind: LoginErrorKind): string {
-  if (kind === 'invalid_credentials') return 'login.errors.invalidCredentials';
-  if (kind === 'network') return 'login.errors.network';
-  return 'login.errors.unknown';
-}
 
 export function LoginPage() {
   const { t } = useTranslation('auth');
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -37,12 +30,18 @@ export function LoginPage() {
   }
 
   const onSubmit = async (values: LoginFormValues) => {
-    setServerError(null);
     const result = await login(values.identifier, values.password);
     if (result.ok) {
       navigate('/profile', { replace: true });
     } else {
-      setServerError(t(errorKey(result.error.kind)));
+      const { kind, messages } = result.error;
+      if (messages.length > 0) {
+        messages.forEach((msg) => toast.error(msg));
+      } else if (kind === 'network') {
+        toast.error(t('login.errors.network'));
+      } else {
+        toast.error(t('login.errors.unknown'));
+      }
     }
   };
 
@@ -56,15 +55,6 @@ export function LoginPage() {
           <p className="mt-1 text-sm text-silver-400">{t('login.subtitle')}</p>
         </div>
 
-        {serverError && (
-          <div
-            role="alert"
-            className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          >
-            {serverError}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
           <div>
             <label htmlFor="identifier" className="mb-1.5 block text-sm font-medium text-ink-900">
@@ -72,8 +62,8 @@ export function LoginPage() {
             </label>
             <input
               id="identifier"
-              type="text"
-              autoComplete="username"
+              type="email"
+              autoComplete="email"
               placeholder={t('login.fields.identifier.placeholder')}
               aria-invalid={!!errors.identifier}
               aria-describedby={errors.identifier ? 'identifier-error' : undefined}
@@ -118,7 +108,7 @@ export function LoginPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || Object.keys(errors).length > 0}
             className="mt-2 w-full rounded-lg bg-ink-900 py-2.5 text-sm font-medium text-white transition hover:bg-ink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t('login.submitting') : t('login.submit')}
