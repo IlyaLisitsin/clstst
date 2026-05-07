@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!jwt) {
           return {
             ok: false,
-            error: { kind: 'unknown', message: 'No token returned by server' },
+            error: { kind: 'unknown', messages: ['No token returned by server'] },
           };
         }
         tokenStore.set(jwt);
