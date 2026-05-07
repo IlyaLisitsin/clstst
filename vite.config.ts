@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
+  base: '/freshcells-trial/',
   plugins: [react()],
   resolve: {
     alias: {

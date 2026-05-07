@@ -30,4 +30,4 @@ jobs:
           rsync -az --delete \
             -e "ssh -i ~/.ssh/deploy_key -v" \
             dist/ \
-            deploy@adff.site:/var/www/html/clstst/
+            deploy@adff.site:/var/www/html/freshcells-trial/

@@ -27,7 +27,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <ApolloProvider client={apolloClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/freshcells-trial">
         <AuthProvider>
           <Suspense>
             <AppRoutes />
