@@ -4,42 +4,10 @@ import { LOGIN_MUTATION } from '@/apollo/operations/login';
 import { tokenStore } from '@/apollo/tokenStore';
 import { AuthContext } from './authContext';
 import type { AuthContextValue, LoginError, LoginResult } from './types';
-import type { StrapiGraphQLExtensions } from '@/apollo/strapiTypes';
-
-function extractStrapiMessages(error: ApolloError): string[] {
-  const messages: string[] = [];
-  for (const gqlError of error.graphQLErrors) {
-    const ext = gqlError.extensions as StrapiGraphQLExtensions | undefined;
-    const groups = ext?.exception?.data?.data ?? ext?.exception?.data?.message ?? [];
-    for (const group of groups) {
-      for (const msg of group.messages) {
-        if (msg.message) messages.push(msg.message);
-      }
-    }
-  }
-  return messages;
-}
 
 function classifyLoginError(error: unknown): LoginError {
-  if (error instanceof ApolloError) {
-    if (error.networkError) {
-      return { kind: 'network', messages: [] };
-    }
-    if (error.graphQLErrors.length > 0) {
-      const strapiMessages = extractStrapiMessages(error);
-      const looksLikeCredentials =
-        strapiMessages.some((m) => /invalid|credential|password|identifier|email/i.test(m)) ||
-        /invalid|credential|password|identifier|email/i.test(
-          error.graphQLErrors[0]?.message ?? '',
-        );
-      return {
-        kind: looksLikeCredentials ? 'invalid_credentials' : 'unknown',
-        messages: strapiMessages,
-      };
-    }
-  }
-  if (error instanceof Error) {
-    return { kind: 'unknown', messages: [error.message] };
+  if (error instanceof ApolloError && error.networkError) {
+    return { kind: 'network', messages: [] };
   }
   return { kind: 'unknown', messages: [] };
 }

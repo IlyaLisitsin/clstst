@@ -1,4 +1,4 @@
-export type LoginErrorKind = 'invalid_credentials' | 'network' | 'unknown';
+export type LoginErrorKind = 'network' | 'unknown';
 
 export interface LoginError {
   kind: LoginErrorKind;

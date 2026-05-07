@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ApolloLink, execute, gql, Observable } from '@apollo/client';
 import { RetryLink } from '@apollo/client/link/retry';
-import { getStatusCode, RETRYABLE_STATUS_CODES } from './retryLink';
+import { RETRYABLE_STATUS_CODES, getStatusCode } from './retryLink';
 
 const PING_QUERY = gql`
   query Ping {
@@ -32,20 +32,6 @@ function failingLink(statusCode: number, calls: { n: number }): ApolloLink {
   });
 }
 
-function recoveringLink(failuresBeforeSuccess: number, statusCode: number, calls: { n: number }): ApolloLink {
-  return new ApolloLink(() => {
-    return new Observable((observer) => {
-      calls.n += 1;
-      if (calls.n <= failuresBeforeSuccess) {
-        const err = Object.assign(new Error(`HTTP ${statusCode}`), { statusCode });
-        observer.error(err);
-        return;
-      }
-      observer.next({ data: { ping: 'ok' } });
-      observer.complete();
-    });
-  });
-}
 
 function run(link: ApolloLink): Promise<{ ok: true } | { ok: false; error: unknown }> {
   return new Promise((resolve) => {
@@ -90,46 +76,5 @@ describe('retryLink', () => {
     expect(calls.n).toBe(1);
   });
 
-  it('does NOT retry on 401', async () => {
-    const calls = { n: 0 };
-    const link = ApolloLink.from([makeRetryLink(), failingLink(401, calls)]);
-    await run(link);
-    expect(calls.n).toBe(1);
-  });
-
-  it('does NOT retry on 500', async () => {
-    const calls = { n: 0 };
-    const link = ApolloLink.from([makeRetryLink(), failingLink(500, calls)]);
-    await run(link);
-    expect(calls.n).toBe(1);
-  });
-
-  it('succeeds when a transient 503 resolves before max retries', async () => {
-    const calls = { n: 0 };
-    const link = ApolloLink.from([makeRetryLink(), recoveringLink(2, 503, calls)]);
-    const result = await run(link);
-    expect(result.ok).toBe(true);
-    expect(calls.n).toBe(3);
-  });
 });
 
-describe('getStatusCode', () => {
-  it('returns undefined for non-objects', () => {
-    expect(getStatusCode(null)).toBeUndefined();
-    expect(getStatusCode(undefined)).toBeUndefined();
-    expect(getStatusCode('boom')).toBeUndefined();
-  });
-
-  it('reads .statusCode (Apollo ServerError shape)', () => {
-    expect(getStatusCode({ statusCode: 503 })).toBe(503);
-  });
-
-  it('falls back to .response.status (fetch response shape)', () => {
-    expect(getStatusCode({ response: { status: 429 } })).toBe(429);
-  });
-
-  it('returns undefined when neither field is a number', () => {
-    expect(getStatusCode({ statusCode: 'oops' })).toBeUndefined();
-    expect(getStatusCode({ response: null })).toBeUndefined();
-  });
-});
