@@ -26,7 +26,8 @@ jobs:
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan adff.site >> ~/.ssh/known_hosts
+          ssh-keygen -l -f ~/.ssh/deploy_key
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key" \
+            -e "ssh -i ~/.ssh/deploy_key -v" \
             dist/ \
             deploy@adff.site:/var/www/html/clstst/
