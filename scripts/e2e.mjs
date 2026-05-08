@@ -1,41 +1,55 @@
 import { spawn } from 'node:child_process';
-import { createConnection } from 'node:net';
+import http from 'node:http';
 
-const PORT = 4173;
-const TIMEOUT_MS = 15000;
-const POLL_INTERVAL_MS = 200;
+const URL_TO_CHECK = 'http://localhost:4173/freshcells-trial/';
+const TIMEOUT_MS = 30000;
+const POLL_INTERVAL_MS = 250;
+const REQUEST_TIMEOUT_MS = 1500;
 
 function log(msg) {
   console.log(`[e2e] ${msg}`);
 }
 
-function waitForPort(port, timeout) {
+function waitForUrl(url, timeout) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + timeout;
     let attempt = 0;
 
-    function tryConnect() {
+    function tryOnce() {
       attempt += 1;
       const remaining = Math.max(0, deadline - Date.now());
-      log(`waiting for port ${port} (attempt ${attempt}, ${remaining}ms left)`);
+      log(`probing ${url} (attempt ${attempt}, ${remaining}ms left)`);
 
-      const socket = createConnection(port, '127.0.0.1');
-      socket.on('connect', () => {
-        socket.destroy();
-        log(`port ${port} is up after ${attempt} attempt(s)`);
-        resolve();
-      });
-      socket.on('error', () => {
-        socket.destroy();
-        if (Date.now() < deadline) {
-          setTimeout(tryConnect, POLL_INTERVAL_MS);
+      const req = http.get(url, (res) => {
+        res.resume();
+        const status = res.statusCode ?? 0;
+        if (status > 0 && status < 500) {
+          log(`got HTTP ${status} from ${url} after ${attempt} attempt(s)`);
+          resolve();
         } else {
-          reject(new Error(`port ${port} not ready after ${timeout}ms`));
+          log(`got HTTP ${status}, retrying`);
+          retry();
         }
       });
+
+      req.on('error', (err) => {
+        log(`probe error: ${err.code ?? err.message}`);
+        retry();
+      });
+
+      req.setTimeout(REQUEST_TIMEOUT_MS, () => {
+        log('probe timed out');
+        req.destroy();
+        retry();
+      });
+
+      function retry() {
+        if (Date.now() < deadline) setTimeout(tryOnce, POLL_INTERVAL_MS);
+        else reject(new Error(`${url} did not respond within ${timeout}ms`));
+      }
     }
 
-    tryConnect();
+    tryOnce();
   });
 }
 
@@ -45,7 +59,7 @@ const mode = open ? 'open' : 'run';
 log(`mode: cypress ${mode}`);
 log('starting vite preview server…');
 
-const server = spawn('npx', ['vite', 'preview'], { stdio: 'inherit' });
+const server = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1'], { stdio: 'inherit' });
 
 server.on('error', (err) => {
   log(`failed to start preview server: ${err.message}`);
@@ -57,7 +71,7 @@ server.on('exit', (code) => {
 });
 
 try {
-  await waitForPort(PORT, TIMEOUT_MS);
+  await waitForUrl(URL_TO_CHECK, TIMEOUT_MS);
 } catch (err) {
   log(err.message);
   server.kill();
